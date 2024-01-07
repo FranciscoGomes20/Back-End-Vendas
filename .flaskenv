@@ -1,0 +1,5 @@
+FLASK_APP=vendas.py
+FLASK_ENV=development
+FLASK_DEBUG=True
+FLASK_RUN_HOST=localhost
+FLASK_RUN_PORT=5000
