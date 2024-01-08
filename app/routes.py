@@ -86,7 +86,7 @@ def listaVendas_de_Produtos():
     all_vendas_de_produtos = Vendas_de_Produtos.query.all()
     return jsonify(product_Sales_schema.dump(all_vendas_de_produtos))
 
-# -------------- POST DA API ----------------#
+# -------------- POST ----------------#
 @app.route('/produto', methods=['POST'])
 def incluirProduto():
     produto = request.get_json()
@@ -112,7 +112,7 @@ def incluirProduto():
 def incluirCliente():
     cliente = request.get_json()
     
-    existing_client = Cliente.query.filter_by(name=cliente["name"]).first()
+    existing_client = Cliente.query.filter_by(email=cliente["email"]).first()
 
     if cliente["name"] == "" or cliente["telephone"] == "" or cliente["email"] == "":
         return jsonify(errors="Os campos não podem estar vazios!")
@@ -121,7 +121,7 @@ def incluirCliente():
         return jsonify(errors="Os campos devem ser do tipo: name(str), telephone(int) e email(str)!")
     
     if existing_client is not None:
-        return jsonify(errors="Esse nome já existe!")
+        return jsonify(errors="Esse email já existe!")
         
     cliente_add = Cliente(name=cliente["name"], telephone=cliente["telephone"], email=cliente["email"])
     db.session.add(cliente_add)
@@ -246,3 +246,185 @@ def incluirVendasProdutos():
     db.session.commit()
 
     return jsonify(vendas_de_produto), 201
+
+# -------------- PUT ----------------#
+@app.route('/produto/<int:id>', methods=['PUT'])
+def editarProduto(id):
+    produto = request.get_json()
+
+    produto_editado = Produto.query.get(id)
+
+    if produto["description"] == "" or produto["price"] == "" or produto["qtd_stock"] == "" or produto["category_id"] == "" or produto["supplier_id"] == "":
+        return jsonify(errors="Os campos não podem estar vazios!")
+    
+    if type(produto["description"]) != str or type(produto["price"]) != int or type(produto["qtd_stock"]) != int or type(produto["category_id"]) != int or type(produto["supplier_id"]) != int:
+        return jsonify(errors="Os campos devem ser do tipo: description(str), price(float/int) e qtd_stock(int) e category_id(int) e supplier_id(int)!")
+
+    produto_editado.id = id
+    produto_editado.description = produto["description"]
+    produto_editado.price = produto["price"]
+    produto_editado.qtd_stock = produto["qtd_stock"]
+    produto_editado.category_id = produto["category_id"]
+    produto_editado.supplier_id = produto["supplier_id"]
+
+    db.session.commit()
+    return jsonify(mensagem="UPDATE SUCESSFUL",dados=produto)
+
+@app.route('/cliente/<int:id>', methods=['PUT'])
+def editarCliente(id):
+    cliente = request.get_json()
+    
+    cliente_editado = Cliente.query.get(id)
+
+    if cliente["name"] == "" or cliente["telephone"] == "" or cliente["email"] == "":
+        return jsonify(errors="Os campos não podem estar vazios!")
+    
+    if type(cliente["name"]) != str or type(cliente["telephone"]) != int or type(cliente["email"]) != str:
+        return jsonify(errors="Os campos devem ser do tipo: name(str), telephone(int) e email(str)!")
+        
+    cliente_editado.id = id
+    cliente_editado.name = cliente["name"]
+    cliente_editado.telephone = cliente["telephone"]
+    cliente_editado.email = cliente["email"]
+
+    db.session.commit()
+    return jsonify(mensagem="UPDATE SUCESSFUL",dados=cliente)
+
+@app.route('/categoria/<int:id>', methods=['PUT'])
+def editarCategoria(id):
+    categoria = request.get_json()
+    
+    categoria_editado = Categoria.query.get(id)
+
+    if categoria["category"] == "":
+        return jsonify(errors="O campos não pode estar vazio!")
+    
+    if type(categoria["category"]) != str:
+        return jsonify(errors="O campo deve ser do tipo: category(str)!")
+        
+    categoria_editado.id = id
+    categoria_editado.category = categoria["category"]
+
+    db.session.commit()
+    return jsonify(mensagem="UPDATE SUCESSFUL",dados=categoria)
+
+@app.route('/fornecedor/<int:id>', methods=['PUT'])
+def editarFornecedor(id):
+    fornecedor = request.get_json()
+    
+    fornecedor_editado = Fornecedor.query.get(id)
+
+    if fornecedor["name"] == "" or fornecedor["cnpj"] == "":
+        return jsonify(errors="Os campos não podem estar vazios!")
+    
+    if type(fornecedor["name"]) != str or type(fornecedor["cnpj"]) != int:
+        return jsonify(errors="O campo deve ser do tipo: name(str) e cnpj(int)!")
+        
+    fornecedor_editado.id = id
+    fornecedor_editado.cnpj = fornecedor["cnpj"]
+    fornecedor_editado.name = fornecedor["name"]
+
+    db.session.commit()
+    return jsonify(mensagem="UPDATE SUCESSFUL",dados=fornecedor)
+
+@app.route('/vendedor/<int:id>', methods=['PUT'])
+def editarVendedor(id):
+    vendedor = request.get_json()
+
+    vendedor_editado = Vendedor.query.get(id)
+
+    if vendedor["name"] == "" or vendedor["email"] == "":
+        return jsonify(errors="Os campos não podem estar vazios!")
+    
+    if type(vendedor["name"]) != str or type(vendedor["email"]) != str:
+        return jsonify(errors="O campo deve ser do tipo: name(str) e email(str)!")
+    
+    vendedor_editado.id = id
+    vendedor_editado.email = vendedor["email"]
+    vendedor_editado.name = vendedor["name"]
+    
+    db.session.commit()
+    return jsonify(mensagem="UPDATE SUCESSFUL",dados=vendedor)
+
+@app.route('/pagamento/<int:id>', methods=['PUT'])
+def editarPagamento(id):
+    pagamento = request.get_json()
+    
+    pagamento_editado = Pagamento.query.get(id)
+
+    if pagamento["form_of_payment"] == "":
+        return jsonify(errors="O campo não pode estar vazio!")
+    
+    if type(pagamento["form_of_payment"]) != str:
+        return jsonify(errors="O campo deve ser do tipo: form_of_payment(str)!")
+    
+    pagamento_editado.id = id
+    pagamento_editado.form_of_payment = pagamento["form_of_payment"]
+    
+    db.session.commit()
+    return jsonify(mensagem="UPDATE SUCESSFUL",dados=pagamento)
+
+@app.route('/venda/<int:id>', methods=['PUT'])
+def editarVenda(id):
+    venda = request.get_json()
+
+    venda_editado = Venda.query.get(id)
+
+    if venda["amount"] == "" or venda["date"] == "" or venda["client_id"] == "" or venda["seller_id"] == "" or venda["payment_id"] == "":
+        return jsonify(errors="Os campos não podem estar vazios!")
+    
+    if type(venda["amount"]) != int or type(venda["date"]) != str or type(venda["client_id"]) != int or type(venda["seller_id"]) != int or type(venda["payment_id"]) != int:
+        return jsonify(errors="O campo deve ser do tipo inteiro!")
+    
+    venda["date"] = date.fromisoformat(venda["date"])
+        
+    venda_editado.id = id
+    venda_editado.amount = venda["amount"]
+    venda_editado.date = venda["date"]
+    venda_editado.client_id = venda["client_id"]
+    venda_editado.seller_id = venda["seller_id"]
+    venda_editado.payment_id = venda["payment_id"]
+    
+    db.session.commit()
+    return jsonify(mensagem="UPDATE SUCESSFUL",dados=venda)
+
+@app.route('/vendas_de_produto/<int:id>', methods=['PUT'])
+def editarVendasProdutos(id):
+    vendas_de_produto = request.get_json()
+
+    vendas_de_produto_editado = Vendas_de_Produtos.query.get(id)
+
+    if vendas_de_produto["sale_id"] == "" or vendas_de_produto["product_id"] == "":
+        return jsonify(errors="Os campos não podem estar vazios!")
+    
+    if type(vendas_de_produto["sale_id"]) != int or type(vendas_de_produto["product_id"]) != int:
+        return jsonify(errors="Os campos devem ser do tipo inteiro!")
+        
+    vendas_de_produto_editado.id = id
+    vendas_de_produto_editado.sale_id = vendas_de_produto["sale_id"]
+    vendas_de_produto_editado.product_id = vendas_de_produto["product_id"]
+    
+    db.session.commit()
+    return jsonify(mensagem="UPDATE SUCESSFUL",dados=vendas_de_produto)
+
+# -------------- DELERTE ----------------#
+@app.route('/produto/<int:id>', methods=['DELETE'])
+def excluirProduto(id):
+    produto = Produto.query.get(id)
+    db.session.delete(produto)
+    db.session.commit()
+    return jsonify(mensagem="DELETED PRODUCT!")
+
+@app.route('/cliente/<int:id>', methods=['DELETE'])
+def excluirCliente(id):
+    cliente = Cliente.query.get(id)
+    db.session.delete(cliente)
+    db.session.commit()
+    return jsonify(mensagem="DELETED CLIENT!")
+
+@app.route('/Vendedor/<int:id>', methods=['DELETE'])
+def excluirVendedor(id):
+    vendedor = Vendedor.query.get(id)
+    db.session.delete(vendedor)
+    db.session.commit()
+    return jsonify(mensagem="DELETED SELLER!")
